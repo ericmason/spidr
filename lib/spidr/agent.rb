@@ -93,6 +93,11 @@ module Spidr
     # @return [Hash{URI::HTTP => Integer}]
     attr_reader :levels
 
+    # The referring URLs of each of the URLs visited
+    #
+    # @return [Hash{URI::HTTP => URI::HTTP}]
+    attr_accessor :referers
+
     #
     # Creates a new Agent object.
     #
@@ -200,6 +205,7 @@ module Spidr
       @history  = Set[]
       @failures = Set[]
       @queue    = []
+      @referers = {}
 
       @limit     = options[:limit]
       @levels    = Hash.new(0)
@@ -531,7 +537,7 @@ module Spidr
     # @return [Boolean]
     #   Specifies whether the URL was enqueued, or ignored.
     #
-    def enqueue(url,level=0)
+    def enqueue(url,level=0,referer=nil)
       url = sanitize_url(url)
 
       if (!(queued?(url)) && visit?(url))
@@ -560,6 +566,7 @@ module Spidr
         end
 
         @queue << url
+        @referers[url] = referer
         @levels[url] = level
         return true
       end
@@ -587,7 +594,7 @@ module Spidr
       url = URI(url)
 
       prepare_request(url) do |session,path,headers|
-        new_page = Page.new(url,session.get(path,headers))
+        new_page = Page.new(url,session.get(path,headers),@referers[url])
 
         # save any new cookies
         @cookies.from_page(new_page)
@@ -679,7 +686,7 @@ module Spidr
           end
 
           if (@max_depth.nil? || @max_depth > @levels[url])
-            enqueue(next_url,@levels[url] + 1)
+            enqueue(next_url,@levels[url] + 1,page.url)
           end
         end
       end

@@ -13,6 +13,9 @@ module Spidr
     # Headers returned with the body
     attr_reader :headers
 
+    # The referring URL for this page
+    attr_reader :referer
+
     #
     # Creates a new Page object.
     #
@@ -22,9 +25,10 @@ module Spidr
     # @param [Net::HTTPResponse] response
     #   The response from the request for the page.
     #
-    def initialize(url,response)
+    def initialize(url,response,referer=nil)
       @url      = url
       @response = response
+      @referer = referer
       @headers  = response.to_hash
       @doc      = nil
     end
