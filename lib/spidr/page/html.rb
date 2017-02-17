@@ -266,7 +266,7 @@ module Spidr
     def to_absolute(link)
       link    = link.to_s
       new_url = begin
-                  base_uri.merge(link)
+                  url.merge(link)
                 rescue Exception
                   return
                 end
@@ -284,15 +284,6 @@ module Spidr
       end
 
       return new_url
-    end
-
-    def base_uri
-      if (html? && doc)
-        base_tag = doc.search('//base[@href]').first
-        base_tag ? URI(base_tag.get_attribute('href')) : url
-      else
-        url
-      end
     end
   end
 end
